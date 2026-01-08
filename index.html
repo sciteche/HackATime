@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xylophone Text Editor</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd, #98d8c8);
+            background-size: 400% 400%;
+            animation: gradientShift 10s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .editor-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 90%;
+        }
+
+        .instrument-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .instrument-btn {
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .instrument-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .instrument-btn.selected {
+            background: #4ecdc4;
+            border-color: #4ecdc4;
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 400px;
+            border: none;
+            outline: none;
+            font-size: 18px;
+            line-height: 1.5;
+            resize: none;
+            background: transparent;
+            color: #333;
+        }
+
+        .note-display {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #fontSelector {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        .control-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            background: #4ecdc4;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: #45b7d1;
+        }
+
+        .control-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .snow-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .snowflake {
+            position: absolute;
+            color: white;
+            font-size: 20px;
+            animation: fall linear infinite;
+            opacity: 0.8;
+        }
+
+        .snowflake.shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        .snow-pile {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.5));
+            border-radius: 10px 10px 0 0;
+            z-index: 2;
+            transition: height 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <h1>Xylophone Text Editor</h1>
+        <div class="instrument-selector" id="instrumentSelector">
+            <button class="instrument-btn selected" data-instrument="xylophone">🎵 Xylophone</button>
+            <button class="instrument-btn" data-instrument="piano">🎹 Piano</button>
+            <button class="instrument-btn" data-instrument="guitar">🎸 Guitar</button>
+            <button class="instrument-btn" data-instrument="drums">🥁 Drums</button>
+        </div>
+        <div class="snow-pile" id="snowPile"></div>
+        <textarea id="editor" placeholder="Start typing to play xylophone notes..."></textarea>
+        <div class="note-display" id="noteDisplay"></div>
+        <div class="controls">
+            <select id="fontSelector">
+                <option value="Arial">Arial</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Verdana">Verdana</option>
+            </select>
+            <button id="recordBtn" class="control-btn">Record</button>
+            <button id="playBtn" class="control-btn" disabled>Play</button>
+            <button id="downloadBtn" class="control-btn" disabled>Download</button>
+        </div>
+    </div>
+
+    <div class="snow-container" id="snowContainer"></div>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const noteDisplay = document.getElementById('noteDisplay');
+        const instrumentSelector = document.getElementById('instrumentSelector');
+        const fontSelector = document.getElementById('fontSelector');
+        const recordBtn = document.getElementById('recordBtn');
+        const playBtn = document.getElementById('playBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const snowContainer = document.getElementById('snowContainer');
+        const snowPile = document.getElementById('snowPile');
+
+        // Xylophone note frequencies (C4 to C5)
+        const notes = [
+            { name: 'C4', freq: 261.63 },
+            { name: 'D4', freq: 293.66 },
+            { name: 'E4', freq: 329.63 },
+            { name: 'F4', freq: 349.23 },
+            { name: 'G4', freq: 392.00 },
+            { name: 'A4', freq: 440.00 },
+            { name: 'B4', freq: 493.88 },
+            { name: 'C5', freq: 523.25 }
+        ];
+
+        // Instrument configurations
+        const instruments = {
+            xylophone: { name: 'Xylophone', icon: '🎵', type: 'sine' },
+            piano: { name: 'Piano', icon: '🎹', type: 'square' },
+            guitar: { name: 'Guitar', icon: '🎸', type: 'sawtooth' },
+            drums: { name: 'Drums', icon: '🥁', type: 'triangle' }
+        };
+
+        let currentInstrument = 'xylophone';
+        let audioContext;
+        let destination;
+        let recorder;
+        let recordedChunks = [];
+        let recordedAudio = null;
+        let isRecording = false;
+        let snowPileHeight = 0;
+
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.className = 'snowflake';
+            snowflake.textContent = '❄';
+            snowflake.style.left = Math.random() * 100 + '%';
+            snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+            snowflake.style.animationDuration = (Math.random() * 5 + 5) + 's';
+            snowflake.style.animationDelay = Math.random() * 5 + 's';
+            snowContainer.appendChild(snowflake);
+
+            // Remove snowflake after animation
+            setTimeout(() => {
+                snowContainer.removeChild(snowflake);
+            }, 10000);
+        }
+
+        function accumulateSnow() {
+            snowPileHeight += 1;
+            if (snowPileHeight > 50) snowPileHeight = 50; // Max height
+            snowPile.style.height = snowPileHeight + 'px';
+        }
+
+        // Generate snowflakes continuously
+        setInterval(createSnowflake, 200);
+
+        // Accumulate snow every 5 seconds
+        setInterval(accumulateSnow, 5000);
+
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            destination = audioContext.createMediaStreamDestination();
+        }
+
+        function playNote(frequency, duration = 0.5) {
+            if (!audioContext) initAudio();
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            gainNode.connect(destination);
+
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = instruments[currentInstrument].type;
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        editor.addEventListener('input', function() {
+            const randomNote = notes[Math.floor(Math.random() * notes.length)];
+            playNote(randomNote.freq);
+            noteDisplay.textContent = `♪ ${randomNote.name}`;
+            setTimeout(() => noteDisplay.textContent = '', 1000);
+
+            // Shake existing snowflakes
+            const snowflakes = document.querySelectorAll('.snowflake');
+            snowflakes.forEach(snow => snow.classList.add('shake'));
+            setTimeout(() => {
+                snowflakes.forEach(snow => snow.classList.remove('shake'));
+            }, 500);
+
+            // Create extra snowflakes on type
+            for (let i = 0; i < 5; i++) {
+                setTimeout(createSnowflake, i * 100);
+            }
+        });
+
+        // Instrument selection
+        instrumentSelector.addEventListener('click', function(e) {
+            if (e.target.classList.contains('instrument-btn')) {
+                const selectedInstrument = e.target.dataset.instrument;
+                currentInstrument = selectedInstrument;
+
+                // Update selected class
+                document.querySelectorAll('.instrument-btn').forEach(btn => btn.classList.remove('selected'));
+                e.target.classList.add('selected');
+            }
+        });
+
+        // Font selection
+        fontSelector.addEventListener('change', function() {
+            editor.style.fontFamily = fontSelector.value;
+        });
+
+        // Recording controls
+        recordBtn.addEventListener('click', function() {
+            if (!audioContext) initAudio();
+
+            if (!isRecording) {
+                recordedChunks = [];
+                recorder = new MediaRecorder(destination.stream);
+                recorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                recorder.onstop = () => {
+                    recordedAudio = new Blob(recordedChunks, { type: 'audio/wav' });
+                    playBtn.disabled = false;
+                    downloadBtn.disabled = false;
+                };
+                recorder.start();
+                isRecording = true;
+                recordBtn.textContent = 'Stop Recording';
+                playBtn.disabled = true;
+                downloadBtn.disabled = true;
+            } else {
+                recorder.stop();
+                isRecording = false;
+                recordBtn.textContent = 'Record';
+            }
+        });
+
+        playBtn.addEventListener('click', function() {
+            if (recordedAudio) {
+                const audio = new Audio(URL.createObjectURL(recordedAudio));
+                audio.play();
+            }
+        });
+
+        downloadBtn.addEventListener('click', function() {
+            if (recordedAudio) {
+                const url = URL.createObjectURL(recordedAudio);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'recording.wav';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        });
+
+        // Initialize audio on first user interaction
+        document.addEventListener('click', initAudio, { once: true });
+    </script>
+</body>
+</html>
