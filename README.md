@@ -79,7 +79,3 @@ Open Source. Feel free to modify, remix, and compose!
 ## 📬 Contact
 
 For questions, support, or feedback, please reach out to us at: contact@sciteche.com
-
-## Changing moUSE Cursor
-
-Changing mose cursor to guitar in this window will add a more cool and amazing effect!! to shock all users HaHa!! That sounds really amazing!! cool Huh! Wohooo it's about to complete!
