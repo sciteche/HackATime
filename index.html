@@ -3,131 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xylophone Text Editor</title>
+    <title>Melody Flow - Immersive Text Editor</title>
     <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --text-color: #2d3436;
+            --accent-color: #ff7675;
+            --secondary-color: #6c5ce7;
+        }
+
+        /* Theme Variables */
+        [data-theme="cyberpunk"] {
+            --bg-gradient: linear-gradient(135deg, #2b1055 0%, #7597de 100%);
+            --glass-bg: rgba(10, 10, 20, 0.85);
+            --glass-border: rgba(0, 255, 255, 0.2);
+            --text-color: #00f3ff;
+            --accent-color: #ff0055;
+            --secondary-color: #ffe600;
+        }
+
+        [data-theme="zen"] {
+            --bg-gradient: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: transparent;
+            --text-color: #555;
+            --accent-color: #777;
+            --secondary-color: #999;
+        }
+
+        * { box-sizing: border-box; }
+
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7, #dda0dd, #98d8c8);
-            background-size: 400% 400%;
-            animation: gradientShift 10s ease infinite;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-gradient);
+            height: 100vh;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            transition: background 1s ease;
         }
 
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .editor-container {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            width: 90%;
-        }
-
-        .instrument-selector {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .instrument-btn {
-            background: #f0f0f0;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .instrument-btn:hover {
-            background: #e0e0e0;
-        }
-
-        .instrument-btn.selected {
-            background: #4ecdc4;
-            border-color: #4ecdc4;
-            color: white;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 400px;
-            border: none;
-            outline: none;
-            font-size: 18px;
-            line-height: 1.5;
-            resize: none;
-            background: transparent;
-            color: #333;
-        }
-
-        .note-display {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 24px;
-            font-weight: bold;
-            color: #ff6b6b;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        #fontSelector {
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            font-size: 16px;
-        }
-
-        .control-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            background: #4ecdc4;
-            color: white;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s ease;
-        }
-
-        .control-btn:hover {
-            background: #45b7d1;
-        }
-
-        .control-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .snow-container {
+        /* Start Overlay */
+        #startOverlay {
             position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+
+        .start-btn {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border: none;
+            pointer-events: none; /* Let the overlay handle click */
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Background Particle Canvas */
+        #fxCanvas {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
@@ -136,262 +95,945 @@
             z-index: 1;
         }
 
-        .snowflake {
-            position: absolute;
-            color: white;
-            font-size: 20px;
-            animation: fall linear infinite;
-            opacity: 0.8;
-        }
-
-        .snowflake.shake {
-            animation: shake 0.5s ease-in-out;
-        }
-
-        @keyframes fall {
-            0% {
-                transform: translateY(-100px);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh);
-                opacity: 0;
-            }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-10deg); }
-            75% { transform: rotate(10deg); }
-        }
-
-        .snow-pile {
-            position: absolute;
+        /* Weather Layer */
+        .snow-container {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 0;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.5));
-            border-radius: 10px 10px 0 0;
-            z-index: 2;
-            transition: height 0.5s ease;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
         }
+
+        .snowflake {
+            position: absolute;
+            color: white; 
+            font-size: 20px;
+            animation: fall linear infinite;
+            opacity: 0.8;
+            user-select: none;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        .snow-pile {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: linear-gradient(to top, rgba(255,255,255,0.8), rgba(255,255,255,0));
+            z-index: 5;
+            transition: height 0.5s ease;
+            pointer-events: none;
+        }
+
+        /* Main UI */
+        .main-stage {
+            position: relative;
+            z-index: 20;
+            width: 90%;
+            max-width: 1000px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Screen Shake */
+        .shake-screen {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* Top Bar */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px 16px 0 0;
+            border: 1px solid var(--glass-border);
+            border-bottom: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            color: var(--text-color);
+        }
+
+        .brand {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats-pill {
+            background: rgba(0,0,0,0.05);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Editor Area */
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        #textarea {
+            flex: 1;
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 30px;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: var(--text-color);
+            resize: none;
+            font-family: inherit;
+        }
+
+        /* Caret Tracker */
+        #caret-tracker {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            width: calc(100% - 60px);
+            pointer-events: none;
+            visibility: hidden;
+            white-space: pre-wrap;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            font-family: inherit;
+            word-wrap: break-word;
+        }
+
+        /* Bottom Controls */
+        .controls-area {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 16px 16px;
+            border: 1px solid var(--glass-border);
+            border-top: none;
+            padding: 15px 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .control-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        button {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid var(--glass-border);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-color);
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        button.active {
+            background: var(--secondary-color);
+            color: white;
+            box-shadow: 0 0 15px var(--secondary-color);
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.2);
+            color: var(--text-color);
+            outline: none;
+        }
+
+        /* Combo Meter */
+        .combo-meter {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--accent-color);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .combo-active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .toolbar { flex-direction: column; gap: 10px; }
+            .controls-area { flex-direction: column; }
+            .control-group { width: 100%; justify-content: space-between; }
+            #textarea { font-size: 1rem; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div class="editor-container">
-        <h1>Xylophone Text Editor</h1>
-        <div class="instrument-selector" id="instrumentSelector">
-            <button class="instrument-btn selected" data-instrument="xylophone">🎵 Xylophone</button>
-            <button class="instrument-btn" data-instrument="piano">🎹 Piano</button>
-            <button class="instrument-btn" data-instrument="guitar">🎸 Guitar</button>
-            <button class="instrument-btn" data-instrument="drums">🥁 Drums</button>
+
+    <!-- Start Overlay to Guarantee Audio Context -->
+    <div id="startOverlay">
+        <div class="start-btn">🎵 Click to Start</div>
+    </div>
+
+    <!-- Background Canvas -->
+    <canvas id="fxCanvas"></canvas>
+    
+    <!-- Weather Overlay -->
+    <div id="snowContainer" class="snow-container"></div>
+    <div id="snowPile" class="snow-pile"></div>
+
+    <div class="main-stage" id="mainStage">
+        <!-- Header -->
+        <div class="toolbar">
+            <div class="brand">
+                <span>🎵 Melody Flow</span>
+            </div>
+            <div class="stats-pill">
+                <span id="wpm">0 WPM</span>
+                <span style="opacity:0.3">|</span>
+                <span id="charCount">0 Chars</span>
+            </div>
         </div>
-        <div class="snow-pile" id="snowPile"></div>
-        <textarea id="editor" placeholder="Start typing to play xylophone notes..."></textarea>
-        <div class="note-display" id="noteDisplay"></div>
-        <div class="controls">
-            <select id="fontSelector">
-                <option value="Arial">Arial</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Courier New">Courier New</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Verdana">Verdana</option>
-            </select>
-            <button id="recordBtn" class="control-btn">Record</button>
-            <button id="playBtn" class="control-btn" disabled>Play</button>
-            <button id="downloadBtn" class="control-btn" disabled>Download</button>
+
+        <!-- Editor -->
+        <div class="editor-wrapper">
+            <div id="comboDisplay" class="combo-meter">0x COMBO!</div>
+            <div id="caret-tracker"></div>
+            <textarea id="textarea" placeholder="Start typing to compose your symphony..."></textarea>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-area">
+            
+            <div class="control-group">
+                <select id="themeSelect">
+                    <option value="sunset">Theme: Sunset</option>
+                    <option value="cyberpunk">Theme: Cyberpunk</option>
+                    <option value="zen">Theme: Zen</option>
+                </select>
+                <select id="fontSelect">
+                    <option value="'Segoe UI', sans-serif">Segoe UI (Default)</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                    <option value="'Georgia', serif">Georgia</option>
+                    <option value="'Comic Sans MS', 'Chalkboard SE', sans-serif">Comic Sans</option>
+                    <option value="'Impact', fantasy">Impact</option>
+                    <option value="'Verdana', sans-serif">Verdana</option>
+                    <option value="'Brush Script MT', cursive">Brush Script</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <select id="weatherSelect">
+                    <option value="snow">❄️ Snow</option>
+                    <option value="rain">🌧️ Rain</option>
+                    <option value="hearts">❤️ Hearts</option>
+                    <option value="stars">⭐ Stars</option>
+                </select>
+                <button id="toggleWeatherBtn" class="active">On</button>
+                <button id="clearSnowBtn">🧹 Clear</button>
+            </div>
+
+            <div class="control-group">
+                <select id="instrumentSelect">
+                    <option value="xylophone">🎵 Xylophone</option>
+                    <option value="piano">🎹 Piano</option>
+                    <option value="guitar">🎸 Guitar</option>
+                    <option value="drums">🥁 Drums</option>
+                    <option value="flute">🪈 Flute</option>
+                    <option value="organ">⛪ Organ</option>
+                    <option value="bell">🔔 Bell</option>
+                    <option value="8bit">👾 8-Bit</option>
+                    <option value="violin">🎻 Violin</option>
+                </select>
+                <button id="fxBtn">🌫️ Reverb</button>
+            </div>
+
+            <div class="control-group">
+                <button id="recBtn">🔴 Rec</button>
+                <button id="dlBtn" disabled>💾 Save</button>
+            </div>
         </div>
     </div>
 
-    <div class="snow-container" id="snowContainer"></div>
-
     <script>
-        const editor = document.getElementById('editor');
-        const noteDisplay = document.getElementById('noteDisplay');
-        const instrumentSelector = document.getElementById('instrumentSelector');
-        const fontSelector = document.getElementById('fontSelector');
-        const recordBtn = document.getElementById('recordBtn');
-        const playBtn = document.getElementById('playBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const snowContainer = document.getElementById('snowContainer');
-        const snowPile = document.getElementById('snowPile');
+        /**
+         * APPLICATION CORE
+         */
+        const App = {
+            ctx: null, // Audio Context
+            analyser: null,
+            masterGain: null,
+            reverbNode: null,
+            isReverbOn: false,
+            instrument: 'xylophone',
+            drumBuffer: null, 
+            audioSetupComplete: false, // Flag to track successful audio init
+            
+            // Xylophone note frequencies (C4 to C5)
+            notes: [
+                { name: 'C4', freq: 261.63 },
+                { name: 'D4', freq: 293.66 },
+                { name: 'E4', freq: 329.63 },
+                { name: 'F4', freq: 349.23 },
+                { name: 'G4', freq: 392.00 },
+                { name: 'A4', freq: 440.00 },
+                { name: 'B4', freq: 493.88 },
+                { name: 'C5', freq: 523.25 }
+            ],
+            
+            // Weather State
+            weatherType: 'snow',
+            isWeatherOn: true,
+            snowPileHeight: 0,
+            weathers: {
+                snow: { emoji: '❄️' },
+                rain: { emoji: '💧' },
+                hearts: { emoji: '❤️' },
+                stars: { emoji: '⭐' }
+            },
 
-        // Xylophone note frequencies (C4 to C5)
-        const notes = [
-            { name: 'C4', freq: 261.63 },
-            { name: 'D4', freq: 293.66 },
-            { name: 'E4', freq: 329.63 },
-            { name: 'F4', freq: 349.23 },
-            { name: 'G4', freq: 392.00 },
-            { name: 'A4', freq: 440.00 },
-            { name: 'B4', freq: 493.88 },
-            { name: 'C5', freq: 523.25 }
-        ];
+            // Stats
+            startTime: null,
+            charCount: 0,
+            combo: 0,
+            lastTypeTime: 0,
+            
+            // DOM Elements
+            ui: {
+                textarea: document.getElementById('textarea'),
+                tracker: document.getElementById('caret-tracker'),
+                canvas: document.getElementById('fxCanvas'),
+                combo: document.getElementById('comboDisplay'),
+                stage: document.getElementById('mainStage'),
+                wpm: document.getElementById('wpm'),
+                chars: document.getElementById('charCount'),
+                snowContainer: document.getElementById('snowContainer'),
+                snowPile: document.getElementById('snowPile'),
+                weatherSelect: document.getElementById('weatherSelect'),
+                toggleWeather: document.getElementById('toggleWeatherBtn'),
+                clearSnow: document.getElementById('clearSnowBtn'),
+                instrumentSelect: document.getElementById('instrumentSelect'),
+                overlay: document.getElementById('startOverlay')
+            },
 
-        // Instrument configurations
-        const instruments = {
-            xylophone: { name: 'Xylophone', icon: '🎵', type: 'sine' },
-            piano: { name: 'Piano', icon: '🎹', type: 'square' },
-            guitar: { name: 'Guitar', icon: '🎸', type: 'sawtooth' },
-            drums: { name: 'Drums', icon: '🥁', type: 'triangle' }
+            init() {
+                // Wait for interaction to start audio
+                this.ui.overlay.addEventListener('click', () => {
+                    this.setupAudio();
+                    
+                    // FORCE UNLOCK - Play silent note to verify AudioContext is truly awake
+                    if (this.ctx) {
+                        this.ctx.resume().then(() => {
+                            try {
+                                const osc = this.ctx.createOscillator();
+                                const g = this.ctx.createGain();
+                                g.gain.value = 0; // Silent
+                                osc.connect(g);
+                                g.connect(this.ctx.destination);
+                                osc.start(0);
+                                osc.stop(0.1);
+                            } catch(e) { console.warn("Silent unlock failed", e); }
+                        });
+                    }
+
+                    this.ui.overlay.style.opacity = '0';
+                    setTimeout(() => this.ui.overlay.style.display = 'none', 500);
+                    this.ui.textarea.focus();
+                });
+
+                this.setupCanvas();
+                this.setupEvents();
+                this.startWeatherSystem();
+                this.loop();
+            },
+
+            setupAudio() {
+                if (this.audioSetupComplete) return; // Already setup
+
+                try {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                    
+                    // Master Volume
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.gain.value = 0.5;
+                    
+                    // CRITICAL FIX: Connect to speakers IMMEDIATELY before setting up complex nodes
+                    this.masterGain.connect(this.ctx.destination);
+                    
+                    // Mark setup as successful so playNote proceeds
+                    this.audioSetupComplete = true;
+
+                    // -- Modular Setup (Wrapped in Try/Catch so failures don't kill audio) --
+
+                    // 1. Analyser
+                    try {
+                        this.analyser = this.ctx.createAnalyser();
+                        this.analyser.fftSize = 256;
+                        this.masterGain.connect(this.analyser);
+                    } catch(e) { console.warn("Visualizer init failed", e); }
+
+                    // 2. Reverb
+                    try {
+                        this.reverbNode = this.ctx.createConvolver();
+                        this.reverbNode.buffer = this.createReverbBuffer();
+                        this.reverbGain = this.ctx.createGain();
+                        this.reverbGain.gain.value = 0; // Off by default
+                        
+                        this.masterGain.connect(this.reverbNode);
+                        this.reverbNode.connect(this.reverbGain);
+                        this.reverbGain.connect(this.ctx.destination);
+                    } catch(e) { console.warn("Reverb init failed", e); }
+                    
+                    // 3. Drums
+                    try {
+                        this.drumBuffer = this.createDrumBuffer();
+                    } catch(e) { console.warn("Drum buffer init failed", e); }
+
+                    // 4. Recorder
+                    try {
+                         if (typeof MediaStreamDestinationNode !== 'undefined') {
+                            this.dest = this.ctx.createMediaStreamDestination();
+                            this.masterGain.connect(this.dest);
+                            // Also record reverb tail if it exists
+                            if (this.reverbGain) this.reverbGain.connect(this.dest);
+                        }
+                    } catch(e) { console.warn("Recorder init failed", e); }
+
+                } catch (e) {
+                    console.error("Audio Engine Critical Failure:", e);
+                    this.audioSetupComplete = false; // Prevents playNote from running
+                    alert("Audio could not start. Please check your browser settings.");
+                }
+            },
+
+            createReverbBuffer() {
+                if (!this.ctx) return null;
+                const len = this.ctx.sampleRate * 2.0; // 2 seconds
+                const buffer = this.ctx.createBuffer(2, len, this.ctx.sampleRate);
+                for (let c = 0; c < 2; c++) {
+                    const ch = buffer.getChannelData(c);
+                    for (let i = 0; i < len; i++) {
+                        ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+                    }
+                }
+                return buffer;
+            },
+            
+            createDrumBuffer() {
+                if (!this.ctx) return null;
+                const bufferSize = this.ctx.sampleRate * 0.5; // 0.5 seconds
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                return buffer;
+            },
+
+            playNote(char) {
+                // Safety check: ensure everything is ready
+                if (!this.audioSetupComplete || !this.ctx || !this.masterGain) return;
+
+                // Resume Context if needed
+                if(this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+
+                const now = this.ctx.currentTime;
+                const gainNode = this.ctx.createGain();
+                
+                // IMPORTANT: connect to masterGain safely
+                try {
+                    gainNode.connect(this.masterGain);
+                } catch(e) {
+                    console.error("Connection failed", e);
+                    return;
+                }
+
+                // --- DRUM LOGIC ---
+                if (this.instrument === 'drums') {
+                    const charCode = char ? char.charCodeAt(0) : 0;
+                    const isKick = charCode % 2 === 0;
+
+                    if (isKick) {
+                        // KICK
+                        const osc = this.ctx.createOscillator();
+                        osc.connect(gainNode);
+                        osc.frequency.setValueAtTime(150, now);
+                        osc.frequency.exponentialRampToValueAtTime(0.01, now + 0.5);
+                        gainNode.gain.setValueAtTime(0.8, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                        osc.start(now);
+                        osc.stop(now + 0.5);
+                    } else {
+                        // SNARE
+                        if (this.drumBuffer) {
+                            const noise = this.ctx.createBufferSource();
+                            noise.buffer = this.drumBuffer;
+                            const filter = this.ctx.createBiquadFilter();
+                            filter.type = 'highpass';
+                            filter.frequency.value = 1000;
+                            noise.connect(filter);
+                            filter.connect(gainNode);
+                            gainNode.gain.setValueAtTime(0.5, now);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                            noise.start(now);
+                            noise.stop(now + 0.2);
+                        } else {
+                            // Fallback
+                            const osc = this.ctx.createOscillator();
+                            osc.type = 'square';
+                            osc.connect(gainNode);
+                            osc.frequency.setValueAtTime(200, now);
+                            gainNode.gain.setValueAtTime(0.1, now);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                            osc.start(now);
+                            osc.stop(now + 0.1);
+                        }
+                    }
+                    return; 
+                }
+
+                // --- TONE LOGIC (Fixed Order: Calc Duration -> Start -> Stop) ---
+                const oscillator = this.ctx.createOscillator();
+                oscillator.connect(gainNode);
+
+                // Pick Random Note
+                const randomNote = this.notes[Math.floor(Math.random() * this.notes.length)];
+                let duration = 0.5; // Default stop time offset
+
+                switch (this.instrument) {
+                    case 'flute':
+                        oscillator.frequency.setValueAtTime(randomNote.freq, now);
+                        oscillator.type = 'triangle';
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(0.4, now + 0.1); 
+                        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.4); 
+                        gainNode.gain.linearRampToValueAtTime(0, now + 0.6); 
+                        duration = 0.6;
+                        break;
+                        
+                    case 'organ':
+                        oscillator.frequency.setValueAtTime(randomNote.freq, now);
+                        oscillator.type = 'sawtooth';
+                        gainNode.gain.setValueAtTime(0.2, now);
+                        gainNode.gain.linearRampToValueAtTime(0.2, now + 0.3);
+                        gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+                        duration = 0.4;
+                        break;
+                        
+                    case 'bell':
+                        oscillator.frequency.setValueAtTime(randomNote.freq * 2, now); 
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(0.4, now + 0.01); 
+                        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.5); 
+                        duration = 1.5;
+                        break;
+                        
+                    case '8bit':
+                        oscillator.frequency.setValueAtTime(randomNote.freq, now);
+                        oscillator.type = 'square';
+                        gainNode.gain.setValueAtTime(0.3, now);
+                        gainNode.gain.setValueAtTime(0.3, now + 0.05);
+                        gainNode.gain.linearRampToValueAtTime(0, now + 0.1); 
+                        duration = 0.1;
+                        break;
+                        
+                    case 'violin':
+                        oscillator.frequency.setValueAtTime(randomNote.freq, now);
+                        oscillator.type = 'sawtooth';
+                        gainNode.gain.setValueAtTime(0, now);
+                        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.3); 
+                        gainNode.gain.linearRampToValueAtTime(0, now + 0.7);
+                        duration = 0.7;
+                        break;
+
+                    case 'piano':
+                        oscillator.frequency.setValueAtTime(randomNote.freq, now);
+                        oscillator.type = 'square';
+                        gainNode.gain.setValueAtTime(0.15, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+                        duration = 0.6;
+                        break;
+
+                    case 'guitar':
+                        oscillator.frequency.setValueAtTime(randomNote.freq, now);
+                        oscillator.type = 'sawtooth';
+                        gainNode.gain.setValueAtTime(0.15, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                        duration = 0.5;
+                        break;
+
+                    case 'xylophone':
+                    default:
+                        oscillator.frequency.setValueAtTime(randomNote.freq, now);
+                        oscillator.type = 'sine';
+                        gainNode.gain.setValueAtTime(0.3, now);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                        duration = 0.5;
+                        break;
+                }
+
+                // Execute in correct order to avoid "stop called without start"
+                oscillator.start(now);
+                oscillator.stop(now + duration);
+            },
+
+            setupCanvas() {
+                this.canvasCtx = this.ui.canvas.getContext('2d');
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            },
+
+            resizeCanvas() {
+                this.ui.canvas.width = window.innerWidth;
+                this.ui.canvas.height = window.innerHeight;
+            },
+
+            setupEvents() {
+                // Typing
+                this.ui.textarea.addEventListener('input', (e) => {
+                    // 1. UPDATE STATS FIRST (Fail-safe)
+                    this.updateStats();
+
+                    // 2. Play Audio (Try/Catch wrapper)
+                    try {
+                        // Attempt audio resume if needed
+                        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+                        const char = (e.data && e.data.length > 0) ? e.data : ' ';
+                        this.playNote(char);
+                    } catch (err) {
+                        console.error("Audio error in typing:", err);
+                    }
+                    
+                    // 3. Visuals (Try/Catch wrapper)
+                    try {
+                        this.handleTypingVisuals(e);
+                        if (this.isWeatherOn) {
+                            for(let i=0; i<3; i++) setTimeout(() => this.spawnSnowflake(), i*100);
+                        }
+                    } catch (err) {
+                        console.error("Visuals skipped:", err);
+                    }
+                });
+
+                // Recorder
+                let recorder = null;
+                let chunks = [];
+                const recBtn = document.getElementById('recBtn');
+                const dlBtn = document.getElementById('dlBtn');
+
+                recBtn.addEventListener('click', () => {
+                    // Ensure context is ready
+                    if (!this.audioSetupComplete) this.setupAudio();
+                    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+                    if (!this.dest) {
+                         alert("Recording not supported on this device/browser.");
+                         return;
+                    }
+
+                    if (recorder && recorder.state === 'recording') {
+                        recorder.stop();
+                        recBtn.textContent = '🔴 Rec';
+                        recBtn.classList.remove('active');
+                    } else {
+                        chunks = [];
+                        try {
+                            recorder = new MediaRecorder(this.dest.stream);
+                            recorder.ondataavailable = e => chunks.push(e.data);
+                            recorder.onstop = () => {
+                                const blob = new Blob(chunks, { 'type' : 'audio/wav' });
+                                const url = URL.createObjectURL(blob);
+                                dlBtn.onclick = () => {
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = 'melody_flow.wav';
+                                    a.click();
+                                };
+                                dlBtn.disabled = false;
+                            };
+                            recorder.start();
+                            recBtn.textContent = '⬛ Stop';
+                            recBtn.classList.add('active');
+                            dlBtn.disabled = true;
+                        } catch(e) {
+                            console.warn("Recorder failed", e);
+                        }
+                    }
+                });
+
+                // Instrument Switcher
+                this.ui.instrumentSelect.addEventListener('change', (e) => {
+                    this.instrument = e.target.value;
+                });
+
+                // FX Switcher
+                const fxBtn = document.getElementById('fxBtn');
+                fxBtn.addEventListener('click', () => {
+                    this.isReverbOn = !this.isReverbOn;
+                    if(this.reverbGain && this.ctx) {
+                        this.reverbGain.gain.setTargetAtTime(this.isReverbOn ? 0.5 : 0, this.ctx.currentTime, 0.1);
+                    }
+                    fxBtn.textContent = this.isReverbOn ? '🌫️ Rev: On' : '🌫️ Rev: Off';
+                    fxBtn.classList.toggle('active');
+                });
+
+                // Theme Switcher
+                document.getElementById('themeSelect').addEventListener('change', (e) => {
+                    document.body.setAttribute('data-theme', e.target.value);
+                });
+
+                // Font Switcher
+                document.getElementById('fontSelect').addEventListener('change', (e) => {
+                    this.ui.textarea.style.fontFamily = e.target.value;
+                    this.ui.tracker.style.fontFamily = e.target.value;
+                });
+
+                // Weather Controls
+                this.ui.weatherSelect.addEventListener('change', (e) => {
+                    this.weatherType = e.target.value;
+                });
+
+                this.ui.toggleWeather.addEventListener('click', () => {
+                    this.isWeatherOn = !this.isWeatherOn;
+                    this.ui.toggleWeather.textContent = this.isWeatherOn ? 'On' : 'Off';
+                    this.ui.toggleWeather.classList.toggle('active');
+                    if (!this.isWeatherOn) {
+                        this.ui.snowContainer.innerHTML = '';
+                    }
+                });
+
+                this.ui.clearSnow.addEventListener('click', () => {
+                    this.ui.snowContainer.innerHTML = '';
+                    this.snowPileHeight = 0;
+                    this.ui.snowPile.style.height = '0px';
+                });
+            },
+
+            startWeatherSystem() {
+                setInterval(() => {
+                    if (this.isWeatherOn) this.spawnSnowflake();
+                }, 200);
+
+                setInterval(() => {
+                    if (this.isWeatherOn && this.snowPileHeight < 100) { 
+                        this.snowPileHeight += 1;
+                        this.ui.snowPile.style.height = `${this.snowPileHeight}px`;
+                    }
+                }, 5000);
+            },
+
+            spawnSnowflake() {
+                const flake = document.createElement('div');
+                flake.className = 'snowflake';
+                flake.textContent = this.weathers[this.weatherType].emoji;
+                flake.style.left = Math.random() * 100 + '%';
+                flake.style.fontSize = (Math.random() * 15 + 10) + 'px';
+                flake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                
+                this.ui.snowContainer.appendChild(flake);
+
+                setTimeout(() => {
+                    if (flake.parentNode) flake.parentNode.removeChild(flake);
+                }, 5000);
+            },
+
+            handleTypingVisuals(e) {
+                const now = Date.now();
+                if (now - this.lastTypeTime < 1000) {
+                    this.combo++;
+                } else {
+                    this.combo = 0;
+                    this.ui.combo.classList.remove('combo-active');
+                    this.ui.stage.classList.remove('shake-screen');
+                }
+                this.lastTypeTime = now;
+
+                if (this.combo > 5) {
+                    this.ui.combo.textContent = `${this.combo}x COMBO!`;
+                    this.ui.combo.classList.add('combo-active');
+                    this.ui.combo.style.color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                }
+
+                if (this.combo > 20) {
+                    this.ui.stage.classList.add('shake-screen');
+                    setTimeout(() => this.ui.stage.classList.remove('shake-screen'), 500);
+                }
+
+                const text = this.ui.textarea.value;
+                const tracker = this.ui.tracker;
+                tracker.textContent = text.substring(0, this.ui.textarea.selectionStart);
+                const span = document.createElement('span');
+                span.textContent = '.'; 
+                tracker.appendChild(span);
+                
+                const rect = span.getBoundingClientRect();
+                Particles.spawn(rect.left, rect.top);
+            },
+
+            updateStats() {
+                const text = this.ui.textarea.value;
+                this.charCount = text.length;
+                this.ui.chars.textContent = `${this.charCount} Chars`;
+
+                if (!this.startTime && this.charCount > 0) this.startTime = Date.now();
+                
+                if (this.startTime && this.charCount > 0) {
+                    const minutes = (Date.now() - this.startTime) / 60000;
+                    if (minutes > 0) {
+                        const words = text.trim().split(/\s+/).length;
+                        const wpm = Math.round(words / minutes);
+                        // Prevent Infinity/NaN
+                        this.ui.wpm.textContent = `${isFinite(wpm) ? wpm : 0} WPM`;
+                    }
+                }
+            },
+
+            loop() {
+                requestAnimationFrame(() => this.loop());
+                
+                const w = this.ui.canvas.width;
+                const h = this.ui.canvas.height;
+                const ctx = this.canvasCtx;
+
+                ctx.clearRect(0, 0, w, h);
+
+                if (this.analyser && this.ctx) {
+                    const bufferLength = this.analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    this.analyser.getByteFrequencyData(dataArray);
+
+                    const barWidth = (w / bufferLength) * 2.5;
+                    let barHeight;
+                    let x = 0;
+
+                    for(let i = 0; i < bufferLength; i++) {
+                        barHeight = dataArray[i] * 1.5; 
+                        
+                        const r = barHeight + (25 * (i/bufferLength));
+                        const g = 250 * (i/bufferLength);
+                        const b = 50;
+
+                        ctx.fillStyle = `rgba(${r},${g},${b}, 0.5)`;
+                        ctx.fillRect(x, h - barHeight, barWidth, barHeight);
+                        
+                        x += barWidth + 1;
+                    }
+                }
+
+                Particles.updateAndDraw(ctx);
+            }
         };
 
-        let currentInstrument = 'xylophone';
-        let audioContext;
-        let destination;
-        let recorder;
-        let recordedChunks = [];
-        let recordedAudio = null;
-        let isRecording = false;
-        let snowPileHeight = 0;
+        /**
+         * PARTICLE SYSTEM
+         */
+        const Particles = {
+            active: [],
+            
+            spawn(x, y) {
+                const count = 5 + Math.random() * 5;
+                for (let i = 0; i < count; i++) {
+                    this.active.push({
+                        x: x,
+                        y: y,
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: (Math.random() - 0.5) * 10,
+                        life: 1.0,
+                        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                        size: Math.random() * 4 + 2
+                    });
+                }
+            },
 
-        function createSnowflake() {
-            const snowflake = document.createElement('div');
-            snowflake.className = 'snowflake';
-            snowflake.textContent = '❄';
-            snowflake.style.left = Math.random() * 100 + '%';
-            snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
-            snowflake.style.animationDuration = (Math.random() * 5 + 5) + 's';
-            snowflake.style.animationDelay = Math.random() * 5 + 's';
-            snowContainer.appendChild(snowflake);
+            updateAndDraw(ctx) {
+                for (let i = this.active.length - 1; i >= 0; i--) {
+                    let p = this.active[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.5; // Gravity
+                    p.life -= 0.02;
 
-            // Remove snowflake after animation
-            setTimeout(() => {
-                snowContainer.removeChild(snowflake);
-            }, 10000);
-        }
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
 
-        function accumulateSnow() {
-            snowPileHeight += 1;
-            if (snowPileHeight > 50) snowPileHeight = 50; // Max height
-            snowPile.style.height = snowPileHeight + 'px';
-        }
-
-        // Generate snowflakes continuously
-        setInterval(createSnowflake, 200);
-
-        // Accumulate snow every 5 seconds
-        setInterval(accumulateSnow, 5000);
-
-        function initAudio() {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            destination = audioContext.createMediaStreamDestination();
-        }
-
-        function playNote(frequency, duration = 0.5) {
-            if (!audioContext) initAudio();
-
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            gainNode.connect(destination);
-
-            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-            oscillator.type = instruments[currentInstrument].type;
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + duration);
-        }
-
-        editor.addEventListener('input', function() {
-            const randomNote = notes[Math.floor(Math.random() * notes.length)];
-            playNote(randomNote.freq);
-            noteDisplay.textContent = `♪ ${randomNote.name}`;
-            setTimeout(() => noteDisplay.textContent = '', 1000);
-
-            // Shake existing snowflakes
-            const snowflakes = document.querySelectorAll('.snowflake');
-            snowflakes.forEach(snow => snow.classList.add('shake'));
-            setTimeout(() => {
-                snowflakes.forEach(snow => snow.classList.remove('shake'));
-            }, 500);
-
-            // Create extra snowflakes on type
-            for (let i = 0; i < 5; i++) {
-                setTimeout(createSnowflake, i * 100);
+                    if (p.life <= 0) this.active.splice(i, 1);
+                }
             }
-        });
+        };
 
-        // Instrument selection
-        instrumentSelector.addEventListener('click', function(e) {
-            if (e.target.classList.contains('instrument-btn')) {
-                const selectedInstrument = e.target.dataset.instrument;
-                currentInstrument = selectedInstrument;
+        // Start
+        App.init();
 
-                // Update selected class
-                document.querySelectorAll('.instrument-btn').forEach(btn => btn.classList.remove('selected'));
-                e.target.classList.add('selected');
-            }
-        });
-
-        // Font selection
-        fontSelector.addEventListener('change', function() {
-            editor.style.fontFamily = fontSelector.value;
-        });
-
-        // Recording controls
-        recordBtn.addEventListener('click', function() {
-            if (!audioContext) initAudio();
-
-            if (!isRecording) {
-                recordedChunks = [];
-                recorder = new MediaRecorder(destination.stream);
-                recorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        recordedChunks.push(event.data);
-                    }
-                };
-                recorder.onstop = () => {
-                    recordedAudio = new Blob(recordedChunks, { type: 'audio/wav' });
-                    playBtn.disabled = false;
-                    downloadBtn.disabled = false;
-                };
-                recorder.start();
-                isRecording = true;
-                recordBtn.textContent = 'Stop Recording';
-                playBtn.disabled = true;
-                downloadBtn.disabled = true;
-            } else {
-                recorder.stop();
-                isRecording = false;
-                recordBtn.textContent = 'Record';
-            }
-        });
-
-        playBtn.addEventListener('click', function() {
-            if (recordedAudio) {
-                const audio = new Audio(URL.createObjectURL(recordedAudio));
-                audio.play();
-            }
-        });
-
-        downloadBtn.addEventListener('click', function() {
-            if (recordedAudio) {
-                const url = URL.createObjectURL(recordedAudio);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'recording.wav';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-        });
-
-        // Initialize audio on first user interaction
-        document.addEventListener('click', initAudio, { once: true });
     </script>
 </body>
 </html>
